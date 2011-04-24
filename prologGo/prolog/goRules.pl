@@ -2,7 +2,7 @@
 
 % Controla el turno
 :- dynamic hasPlayerWithTheMove/3.
-% Controla el número de movimientos que hay.
+% Controla el nï¿½mero de movimientos que hay.
 :- dynamic hasNumberMoves/3.
 % Comprueba si esta en el tablero y en que posicion.
 :- dynamic isInSquare/4.
@@ -230,6 +230,9 @@ anyMove(P,Color,Move) :-
 	legalMoves(P,Color,L),
 	neutralMoves(P,Color,L,[],NM),
 	randomElement(NM,Move).
+anyMoves(P,Color,Moves) :-
+        legalMoves(P,Color,L),
+	neutralMoves(P,Color,L,[],Moves).
 
 % Picks any positive move from the list of legal moves
 anyPositiveMove(P,Color,Move) :-
@@ -245,10 +248,21 @@ bestMove(P,Color,Move) :-
 	find_indexes(Points,Max,In),
 	getElementAt(In,PM,Moves),
 	randomElement(Moves,Move).
-	
+
+bestMoves(P,Color,Moves):-
+	legalMoves(P,Color,L),
+	positiveMoves(P,Color,L,[],PM,[],Points),
+	maxList(Points,Max),
+	find_indexes(Points,Max,In),
+	getElementAt(In,PM,Moves).
+
 chooseMove(P,Color,X,Y) :- bestMove(P,Color,(X,Y)),!.
 chooseMove(P,Color,X,Y) :- anyMove(P,Color,(X,Y)),!.
 chooseMove(_,_,0,0).
+
+% returns a list of moves
+chooseMoves(P,Color,L):- bestMoves(P,Color,L),!.
+chooseMoves(P,Color,L):- anyMoves(P,Color,L).
 	   
 play(I,J) :- placeStone(0,black,I,J),
 	     chooseMove(0,white,X,Y),

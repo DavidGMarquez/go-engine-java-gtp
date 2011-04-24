@@ -1,7 +1,7 @@
 package prolog.go.CEU;
 
 import java.util.Hashtable;
-import jpl.Query;
+import jpl.*;
 
 /**
  *
@@ -28,7 +28,7 @@ public class Queries {
     }
 
     public boolean addPiece(String color, int rank, char file) {
-        String t = "placeStone(0," + color + "," + file + "," + rank + ")";
+        String t = "placeStone(0," + color + "," + rank + "," + file + ")";
         Query q = new Query(t);
         if (q.hasSolution()) {
             return true;
@@ -38,7 +38,7 @@ public class Queries {
     }
 
     public boolean addPiece(Move m) {
-        String t = "placeStone(0," + m.getColor() + "," + m.getFile() + "," + m.getRank() + ")";
+        String t = "placeStone(0," + m.getColor() + "," + m.getRank() + "," + m.getFile() + ")";
         Query q = new Query(t);
         if (q.hasSolution()) {
             return true;
@@ -48,11 +48,15 @@ public class Queries {
     }
 
     public Move genMove(String color) {
-        String t = "chooseMove(0," + color + ",I,J)";
+        String t = "chooseMoves(0," + color + ",L)";
         Query q = new Query(t);
         if (q.hasSolution()) {
             Hashtable h = q.oneSolution();
-            Move m = new Move(new Integer(h.get("I").toString()).intValue(), new Integer(h.get("J").toString()).intValue(), color);
+            Term[] moves=((Term)h.get("L")).toTermArray();
+            java.util.Random r=new java.util.Random();
+            int random_move=r.nextInt(moves.length);
+            Term move=moves[random_move];
+            Move m = new Move(move.args()[0].intValue(), move.args()[1].intValue(), color);
             return m;
         } else {
             Move pass = new Move(0, 0, color);
@@ -75,4 +79,5 @@ public class Queries {
             return false;
         }
     }
+
 }

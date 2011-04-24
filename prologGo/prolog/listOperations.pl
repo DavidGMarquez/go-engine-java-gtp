@@ -40,6 +40,7 @@ maxList([A|List],Max):-
 find_indexes([],_,[]).
 find_indexes(List,Value,Indexes) :-
 	add_indexes(List,Value,[],Indexes,1).
+
 add_indexes([],_,I,I,_).
 add_indexes([A|List],Value,Indexes,IndexesOut,Current):-
 	((A\=Value,append(Indexes,[],IndexesO));
