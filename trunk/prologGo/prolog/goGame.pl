@@ -1,5 +1,5 @@
 :-consult('goRules.pl').
-
+:- assert(initialConfiguration(0)).
 :- assert(isInSquare(0, white(1), 2, 5)).
 % :- assert(isInSquare(0, white(2), 1, 4)).
 :- assert(isInSquare(0, white(3), 1, 6)).

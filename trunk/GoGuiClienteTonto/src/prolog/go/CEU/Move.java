@@ -14,7 +14,7 @@ public class Move {
     }
 
     /**
-     * @return the rank
+     * @return the rank (horizontal)
      */
     public int getRank() {
         return rank;
@@ -28,7 +28,7 @@ public class Move {
     }
 
     /**
-     * @return the file
+     * @return the file (vertical)
      */
     public int getFile() {
         return file;
@@ -37,7 +37,7 @@ public class Move {
     /**
      * @param file the file to set
      */
-    public void setFile(char file) {
+    public void setFile(int file) {
         this.file = file;
     }
 

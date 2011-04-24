@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package prolog.go.CEU;
 
 import jpl.Query;
@@ -42,16 +38,15 @@ public class TraductorGTPProlog {
         queries.boardsize(newSize);
     }
 
+    // Genera un movimiento. En caso de ser un "pass", moveToGoPoint devolvera null
     public GoPoint genMove(GoColor goColor) throws GtpError {
         if (goColor.equals(GoColor.BLACK)) {
             Move move = queries.genMove("black");
-            //@duda aqui tengo mis dudas del file y rank
-            //Para que pasara debería devolver un GoPoint null
-            return GoPoint.get(move.getRank(), move.getFile());
+            return moveToGoPoint(move);
         } else {
             if (goColor.equals(GoColor.WHITE)) {
                 Move move = queries.genMove("white");
-                return GoPoint.get(move.getRank(), move.getFile());
+                return moveToGoPoint(move);
             }
         }
         throw new GtpError("No such color");
@@ -59,19 +54,34 @@ public class TraductorGTPProlog {
 
     public void addPiece(GoPoint point, GoColor goColor) throws GtpError {
         Move move = null;
-        if (goColor.equals(GoColor.BLACK)) {
-            move = new Move(point.getX(), point.getY(), "black");
-        } else {
-            if (goColor.equals(GoColor.WHITE)) {
-                move = new Move(point.getX(), point.getY(), "white");
-            }
-        }
+        move = createMove(point, goColor);
         if (move != null) {
-            queries.addPiece(move);
+            if(!queries.addPiece(move)){
+                throw new GtpError("Illegal move");
+            }
         } else {
             throw new GtpError("No such color");
         }
     }
+
+    public Move createMove(GoPoint point, GoColor gocolor) {
+        Move m = new Move();
+        m.setRank(point.getX()+1);
+        m.setFile(point.getY()+1);
+        if (gocolor.equals(GoColor.BLACK)) {
+            m.setColor("black");
+        } else {
+            m.setColor("white");
+        }
+        return m;
+    }
+
+    // Convierte un Move en un GoPoint. Si el Move es de pasar (0,0), devuelve null
+    public GoPoint moveToGoPoint(Move m) {
+        if (m.isPass()) {
+            return null;
+        } else {
+            return GoPoint.get(m.getRank()-1, m.getFile()-1);
+        }
+    }
 }
-
-
