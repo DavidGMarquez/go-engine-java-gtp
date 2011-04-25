@@ -60,10 +60,25 @@ isFile(18,s).
 isFile(19,t).
 
 
-% Grid sizes Los distintos tipos de tablero que se pueden elegir
+% Available boardsizes.
+% The first arg is used with initialConfiguration/1
+% The second is the boardsize
 hasSquareSize(0,9).
 hasSquareSize(1,13).
 hasSquareSize(2,19).
+hasSquareSize(3,4).
+hasSquareSize(4,5).
+hasSquareSize(5,6).
+hasSquareSize(6,7).
+hasSquareSize(7,8).
+hasSquareSize(8,10).
+hasSquareSize(9,11).
+hasSquareSize(10,12).
+hasSquareSize(11,14).
+hasSquareSize(12,15).
+hasSquareSize(13,16).
+hasSquareSize(14,17).
+hasSquareSize(15,18).
 
 % Comprueba si una linea esta en el tablero
 lineInGrid(X) :-  line(X), initialConfiguration(C),hasSquareSize(C,S),X=<S.
