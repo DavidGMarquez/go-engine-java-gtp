@@ -48,3 +48,12 @@ Las únicas opciones que tienen las fichas blancas harán que las negras las captu
 Si utiliza un nivel uno, lo pondrá en cualquier espacio vacío:
 chooseMoves(0,levelone,white,L).
 Si utiliza el nivel 2, no tomará la opción de colocarla en (5,2), ya que haría que las negras le capturaran 5 piezas en vez de tres. También contempla la opción de pasar, que hará que pierda 3 piezas igualmente.
+
+goGame_gensmartneutralmoves.pl
+------------------------------
+Selección de movimientos neutros en función de cuántas piezas adyacentes propias u opuestas hay.
+Probar con:
+chooseMoves(0,leveltwo,white,L).
+y
+chooseMoves(0,leveltwo,black,L).
+En algunas ocasiones se agrupará con las fichas opuestas, y en otras con las propias.

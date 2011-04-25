@@ -4,14 +4,16 @@
 :- assert(isInSquare(0, black(1), 1, 2)).
 :- assert(isInSquare(0, black(2), 2, 1)).
 :- assert(isInSquare(0, black(3), 2, 3)).
-:- assert(isInSquare(0, black(4), 4, 1)).
+:- assert(isInSquare(0, white(1), 4, 1)).
+
 :- assert(isInSquare(0, black(5), 2, 2)).
-:- assert(isInSquare(0, black(6), 4, 4)).
+:- assert(isInSquare(0, white(2), 4, 4)).
+:- assert(isInSquare(0, white(3), 4, 2)).
 
 
 :- assert(hasPlayerWithTheMove(0,white)).
-:- assert(hasNumberMoves(0,black,6)).
-:- assert(hasNumberMoves(0,white,0)).
+:- assert(hasNumberMoves(0,black,5)).
+:- assert(hasNumberMoves(0,white,3)).
 :- assert(hasNumberOfCapturedStones(0,white,0)).
 :- assert(hasNumberOfCapturedStones(0,black,0)).
 
