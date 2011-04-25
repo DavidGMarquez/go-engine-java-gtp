@@ -26,9 +26,9 @@ public class TraductorGTPProlog {
         q1.close();
         queries.newGame();
         if (queries.boardsize(defaultSize)) {
-            System.out.println("Boardsize changed");
+            //System.out.println("Boardsize changed");
         } else {
-            System.out.println("Illegal boardsize");
+            //System.out.println("Illegal boardsize");
         }
     }
 
