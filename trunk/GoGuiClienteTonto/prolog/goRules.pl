@@ -171,6 +171,8 @@ listLiberties(_P,_,Lin,Lin).
 
 
 % Game actions
+
+% Places a stone on (I,J), checking whether it is Color's turn
 placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 	                   hasNumberMoves(P,Color,X),
 			   N is X+1,
@@ -180,13 +182,11 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   hasColor(Stone,Color),
 			   hasNumber(Stone,N),
 			   assert(isInSquare(P,Stone,I,J)),
-			   checkIfCapture(P,Stone,L),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkOwnCapture(P,Stone),
-			   removeStones(P,L),
   			   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
 			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
@@ -194,8 +194,7 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 % L is the letter representing the File (a-t)
 placeStone(P,Color,I,L) :- isFile(J,L),placeStone(P,Color,I,J),!.
 
-
-% Game actions
+% Places a stone on (I,J) regardless of whether it's Color's turn or not
 placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
 	                   hasNumberMoves(P,Color,X),
 			   N is X+1,
@@ -204,16 +203,15 @@ placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   hasColor(Stone,Color),
 			   hasNumber(Stone,N),
 			   assert(isInSquare(P,Stone,I,J)),
-			   checkIfCapture(P,Stone,L),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkOwnCapture(P,Stone),
-			   removeStones(P,L),
 			   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
 			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
+
 % L is the letter representing the File (a-t)
 placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,I,J),!.
 
@@ -238,9 +236,11 @@ checkOwnCapture(_,_).
 
 % Removes a list of stones, adding the points to the opposite color
 removeStones(_,[]).
-removeStones(Position,[Stone|List]) :- retractall(isInSquare(Position,Stone,_,_)),
-				       addPoints(Position,Stone),
-				       removeStones(Position,List).
+removeStones(Position,[Stone|List]) :- 
+	isInSquare(Position,Stone,_,_),
+	retractall(isInSquare(Position,Stone,_,_)),
+	addPoints(Position,Stone),
+	removeStones(Position,List).
 
 % Adds points for each stone captured
 addPoints(Position,Stone) :- hasColor(Stone,Color),
@@ -251,19 +251,23 @@ addPoints(Position,Stone) :- hasColor(Stone,Color),
 	assert(hasNumberOfCapturedStones(Position,Color2,N)).
 	
 % Evaluates a possible move in board P
-evaluateVirtualTablet(P,PV,Color,I,J,Points):-
+evaluateVirtualTablet(P,PV,Color,I,J,Points,OPoints):-
 	copyBoard(P,PV),
-	assert(hasPlayerWithTheMove(PV,Color)),
-	placeStone(PV,Color,I,J),
+	placeStoneWithoutMove(PV,Color,I,J),
 	hasNumberOfCapturedStones(PV,Color,Points),
+	isOppositeColor(Color,OtherColor),
+	hasNumberOfCapturedStones(PV,OtherColor,OPoints),
 	cleanBoard(PV),!.
-
 
 % Evaluates a move by assigning it a score
 % The score is the number of opposite stones that will be captured.
-evaluateMove(P,Color,(I,J),N) :- hasNumberOfCapturedStones(P,Color,C),
-	                         evaluateVirtualTablet(P,eval,Color,I,J,C2),
-			         N is C2-C.
+evaluateMove(P,Color,(I,J),N) :- hasNumberOfCapturedStones(P,Color,C1Own),
+	                         isOppositeColor(Color,OtherColor),
+				 hasNumberOfCapturedStones(P,OtherColor,C1Other),
+	                         evaluateVirtualTablet(P,eval,Color,I,J,C2Own,C2Other),
+				 OwnGain is C2Own-C1Own,
+				 OtherGain is C2Other-C1Other,
+			         N is OwnGain-OtherGain.
 
 positiveMove(P,Color,(I,J),N):- evaluateMove(P,Color,(I,J),N),N>0.
 neutralMove(P,Color,(I,J)):- evaluateMove(P,Color,(I,J),0),not(passingMove((I,J))).
