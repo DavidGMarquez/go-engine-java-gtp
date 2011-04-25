@@ -86,7 +86,7 @@ public class GtpEngine
     public void cmdVersion(GtpCommand cmd) throws GtpError
     {
         cmd.checkArgNone();
-        cmd.setResponse(m_version+"Cohete");
+        cmd.setResponse(m_version);
     }
 
     /** Callback for interrupting commands.
