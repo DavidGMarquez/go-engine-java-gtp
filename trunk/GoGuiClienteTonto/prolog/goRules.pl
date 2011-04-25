@@ -138,7 +138,12 @@ legalMove(Position, _Color, I, J) :- lineInGrid(I), lineInGrid(J),
 	                            not(isInSquare(Position,_S,I,J)).
 
 % Returns a list of legal moves, checking for Ko situation
-legalMoves(Position,Color,L) :- findall((I,J),(legalMove(Position,Color,I,J),not(isKo(Position,ko,Color,I,J))),L).
+% legalMoves(Position,Color,L) :-
+% findall((I,J),(legalMove(Position,Color,I,J),not(isKo(Position,ko,Color,I,J))),L).
+% 
+
+% Returns a list of legal moves, not checking for Ko situation
+legalMoves(Position,Color,L) :- findall((I,J),(legalMove(Position,Color,I,J)),L).
 						
 
 % Checks whether there is a chain of connected stones
@@ -323,9 +328,17 @@ evaluateMove(P,Level,Color,(I,J),N) :- hasNumberOfCapturedStones(P,Color,C1Own),
 			         N is OwnGain-OtherGain.
 
 positiveMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N),N>0.
-neutralMove(P,Level,Color,(I,J)):- evaluateMove(P,Level,Color,(I,J),0),not(passingMove((I,J))).
+neutralMove(P,levelone,Color,(I,J),0) :- evaluateMove(P,levelone,Color,(I,J),0),not(passingMove((I,J))).
+neutralMove(P,leveltwo,Color,(I,J),N):- evaluateMove(P,leveltwo,Color,(I,J),0),
+	                                not(passingMove((I,J))),
+	                                evaluateNeutral(P,neutral,Color,(I,J),N).
 negativeMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N),N<0.
 		
+% Tries to connect the piece to own pieces
+evaluateNeutral(P,PV,Color,(I,J),Points) :-  copyBoard(P,PV),placeStoneWithoutCopy(PV,Color,I,J),
+	                                     listConnected(PV,Color,I,J,[],L),
+					     numberOfElements(L,Points),
+					     cleanBoard(PV),!.
 
 % Returns in a list all of the moves that will capture opposing stones
 positiveMoves(_,_,_,[],L,L,P,P).
@@ -344,8 +357,8 @@ negativeMoves(P,Level,Color,[Move|Allmoves],NegativeMoves,NegativeMovesOut,Point
 
 neutralMoves(_,_,_,[],L,L).
 neutralMoves(P,Level,Color,[Move|Allmoves],NeutralMoves,NeutralMovesOut) :-
-	((neutralMove(P,Level,Color,Move),append(NeutralMoves,[Move],NeutralMovesO));
-	(not(neutralMove(P,Level,Color,Move)),append(NeutralMoves,[],NeutralMovesO))),
+	((neutralMove(P,Level,Color,Move,_),append(NeutralMoves,[Move],NeutralMovesO));
+	(not(neutralMove(P,Level,Color,Move,_)),append(NeutralMoves,[],NeutralMovesO))),
 	neutralMoves(P,Level,Color,Allmoves,NeutralMovesO,NeutralMovesOut),!.
 
 
