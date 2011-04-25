@@ -22,14 +22,14 @@ public class TraductorGTPProlog {
         Query q1 = new Query(t1);
 
         q1.hasSolution();
-       // System.out.println(t1 + " " + (q1.hasSolution() ? "succeeded" : "failed"));
+        // System.out.println(t1 + " " + (q1.hasSolution() ? "succeeded" : "failed"));
         q1.close();
         queries.newGame();
         if (queries.boardsize(defaultSize)) {
             //System.out.println("Boardsize changed");
         } else {
-           // System.out.println("Illegal boardsize");
-    }
+            // System.out.println("Illegal boardsize");
+        }
     }
 
     public void clearBoard() {
@@ -42,23 +42,29 @@ public class TraductorGTPProlog {
 
     // Genera un movimiento. En caso de ser un "pass", moveToGoPoint devolvera null
     public GoPoint genMove(GoColor goColor) throws GtpError {
+        Move move = null;
         if (goColor.equals(GoColor.BLACK)) {
-            Move move = queries.genMove("black");
-            return moveToGoPoint(move);
+            move = queries.genMove("black");
         } else {
             if (goColor.equals(GoColor.WHITE)) {
-                Move move = queries.genMove("white");
-                return moveToGoPoint(move);
+                move = queries.genMove("white");                
             }
         }
-        throw new GtpError("No such color");
+        if (move != null) {
+            queries.addPiece(move);
+            return moveToGoPoint(move);
+
+        }
+        else{
+            return null;
+        }
     }
 
     public void addPiece(GoPoint point, GoColor goColor) throws GtpError {
         Move move = null;
         move = createMove(point, goColor);
         if (move != null) {
-            if(!queries.addPiece(move)){
+            if (!queries.addPiece(move)) {
                 throw new GtpError("Illegal move");
             }
         } else {
@@ -68,8 +74,8 @@ public class TraductorGTPProlog {
 
     public Move createMove(GoPoint point, GoColor gocolor) {
         Move m = new Move();
-        m.setRank(point.getX()+1);
-        m.setFile(point.getY()+1);
+        m.setRank(point.getX() + 1);
+        m.setFile(point.getY() + 1);
         if (gocolor.equals(GoColor.BLACK)) {
             m.setColor("black");
         } else {
@@ -83,7 +89,7 @@ public class TraductorGTPProlog {
         if (m.isPass()) {
             return null;
         } else {
-            return GoPoint.get(m.getRank()-1, m.getFile()-1);
+            return GoPoint.get(m.getRank() - 1, m.getFile() - 1);
         }
     }
 }

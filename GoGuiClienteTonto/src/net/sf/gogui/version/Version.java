@@ -14,7 +14,7 @@ public final class Version
     */
     public static String get()
     {
-        return "1.3.GIT-unknown";
+        return "1.X";
     }
 
     /** Make constructor unavailable; class is for namespace only. */
