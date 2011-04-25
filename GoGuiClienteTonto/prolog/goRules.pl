@@ -297,18 +297,20 @@ isKo(P,Ko,Color,I,J) :-
 % Evaluates a possible move in board P
 % Generates the best possible move for the opponent
 % Uses a Lv1 evaluator for the opponent's move
-evaluateVirtualTablet(P,PV,leveltwo,Color,I,J,Points,OPoints) :-
+evaluateVirtualTablet(P,PV,leveltwo,Color,I,J,Points,OPoints,NPoints) :-
 	isOppositeColor(Color,OtherColor),
 	copyBoard(P,PV),
 	placeStoneWithoutCopy(PV,Color,I,J),
 	chooseMove(PV,levelone,OtherColor,X,Y),
 	placeStoneWithoutCopy(PV,OtherColor,X,Y),
+	listConnected(PV,Color,I,J,[],L),
+	numberOfElements(L,NPoints),
 	hasNumberOfCapturedStones(PV,Color,Points),
 	hasNumberOfCapturedStones(PV,OtherColor,OPoints),
 	cleanBoard(PV),!.
 
 % Evaluates a possible move in board P
-evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints):-
+evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints,0):-
 	copyBoard(P,PV),
 	placeStoneWithoutCopy(PV,Color,I,J),
 	hasNumberOfCapturedStones(PV,Color,Points),
@@ -319,26 +321,18 @@ evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints):-
 	
 % Evaluates a move by assigning it a score
 % The score is the number of opposite stones that will be captured.
-evaluateMove(P,Level,Color,(I,J),N) :- hasNumberOfCapturedStones(P,Color,C1Own),
+evaluateMove(P,Level,Color,(I,J),N,Neutral) :- hasNumberOfCapturedStones(P,Color,C1Own),
 	                         isOppositeColor(Color,OtherColor),
 				 hasNumberOfCapturedStones(P,OtherColor,C1Other),
-	                         evaluateVirtualTablet(P,Level,Level,Color,I,J,C2Own,C2Other),
+	                         evaluateVirtualTablet(P,Level,Level,Color,I,J,C2Own,C2Other,Neutral),
 				 OwnGain is C2Own-C1Own,
 				 OtherGain is C2Other-C1Other,
 			         N is OwnGain-OtherGain.
 
-positiveMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N),N>0.
-neutralMove(P,levelone,Color,(I,J),0) :- evaluateMove(P,levelone,Color,(I,J),0),not(passingMove((I,J))).
-neutralMove(P,leveltwo,Color,(I,J),N):- evaluateMove(P,leveltwo,Color,(I,J),0),
-	                                not(passingMove((I,J))),
-	                                evaluateNeutral(P,neutral,Color,(I,J),N).
-negativeMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N),N<0.
+positiveMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N,_),N>0.
+neutralMove(P,Level,Color,(I,J),N) :- evaluateMove(P,Level,Color,(I,J),0,N),not(passingMove((I,J))).
+negativeMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N,_),N<0.
 		
-% Tries to connect the piece to own pieces
-evaluateNeutral(P,PV,Color,(I,J),Points) :-  copyBoard(P,PV),placeStoneWithoutCopy(PV,Color,I,J),
-	                                     listConnected(PV,Color,I,J,[],L),
-					     numberOfElements(L,Points),
-					     cleanBoard(PV),!.
 
 % Returns in a list all of the moves that will capture opposing stones
 positiveMoves(_,_,_,[],L,L,P,P).
@@ -355,22 +349,39 @@ negativeMoves(P,Level,Color,[Move|Allmoves],NegativeMoves,NegativeMovesOut,Point
 
 
 
-neutralMoves(_,_,_,[],L,L).
-neutralMoves(P,Level,Color,[Move|Allmoves],NeutralMoves,NeutralMovesOut) :-
-	((neutralMove(P,Level,Color,Move,_),append(NeutralMoves,[Move],NeutralMovesO));
-	(not(neutralMove(P,Level,Color,Move,_)),append(NeutralMoves,[],NeutralMovesO))),
-	neutralMoves(P,Level,Color,Allmoves,NeutralMovesO,NeutralMovesOut),!.
+neutralMoves(_,_,_,[],L,L,P,P).
+neutralMoves(P,Level,Color,[Move|Allmoves],NeutralMoves,NeutralMovesOut, PointsIn,PointsOut) :-
+	((neutralMove(P,Level,Color,Move,N),append(NeutralMoves,[Move],NeutralMovesO),append(PointsIn,[N],PO));
+	(not(neutralMove(P,Level,Color,Move,_)),append(NeutralMoves,[],NeutralMovesO),append(PointsIn,[],PO))),
+	neutralMoves(P,Level,Color,Allmoves,NeutralMovesO,NeutralMovesOut,PO,PointsOut),!.
 
 
 % Picks any neutral move from the list of legal moves
 anyMove(P,Level,Color,Move) :-
 	legalMoves(P,Color,L),
-	neutralMoves(P,Level,Color,L,[],NM),
+	neutralMoves(P,Level,Color,L,[],NM,[],_),
 	randomElement(NM,Move).
 anyMoves(P,Level,Color,Moves) :-
         legalMoves(P,Color,L),
-	neutralMoves(P,Level,Color,L,[],Moves),
+	neutralMoves(P,Level,Color,L,[],Moves,[],_),
 	numberOfElements(Moves,N),N>0.
+
+bestNeutralMove(P,levelone,Color,Move) :- anyMove(P,levelone,Color,Move).
+bestNeutralMove(P,leveltwo,Color,Move) :-
+	legalMoves(P,Color,L),
+	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
+	maxList(Points,Max),
+	find_indexes(Points,Max,In),
+	getElementAt(In,NM,Moves),
+	randomElement(Moves,Move).
+
+bestNeutralMoves(P,levelone,Color,Moves) :- anyMoves(P,levelone,Color,Moves).
+bestNeutralMoves(P,leveltwo,Color,Moves):-
+	legalMoves(P,Color,L),
+	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
+	maxList(Points,Max),
+	find_indexes(Points,Max,In),
+	getElementAt(In,NM,Moves).
 
 % Picks any positive move from the list of legal moves
 anyPositiveMove(P,Level,Color,Move) :-
@@ -418,13 +429,13 @@ bestBadMoves(P,Level,Color,Moves):-
 
 
 chooseMove(P,Level,Color,X,Y) :- bestMove(P,Level,Color,(X,Y)),!.
-chooseMove(P,Level,Color,X,Y) :- anyMove(P,Level,Color,(X,Y)),!.
+chooseMove(P,Level,Color,X,Y) :- bestNeutralMove(P,Level,Color,(X,Y)),!.
 chooseMove(P,Level,Color,X,Y) :- bestBadMove(P,Level,Color,(X,Y)),!.
 chooseMove(_,_,_,0,0).
 
 % returns a list of moves
 chooseMoves(P,Level,Color,L):- bestMoves(P,Level,Color,L),!.
-chooseMoves(P,Level,Color,L):- anyMoves(P,Level,Color,L),!.
+chooseMoves(P,Level,Color,L):- bestNeutralMoves(P,Level,Color,L),!.
 chooseMoves(P,Level,Color,L):- bestBadMoves(P,Level,Color,L),!.
 chooseMoves(_,_,_,[(0,0)]).
 	   
