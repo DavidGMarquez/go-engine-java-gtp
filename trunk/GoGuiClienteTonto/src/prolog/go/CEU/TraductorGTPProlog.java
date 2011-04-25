@@ -20,14 +20,16 @@ public class TraductorGTPProlog {
         this.defaultSize = defaultSize;
         String t1 = "consult('" + file + "')";
         Query q1 = new Query(t1);
-        System.out.println(t1 + " " + (q1.hasSolution() ? "succeeded" : "failed"));
+
+        q1.hasSolution();
+       // System.out.println(t1 + " " + (q1.hasSolution() ? "succeeded" : "failed"));
         q1.close();
         queries.newGame();
         if (queries.boardsize(defaultSize)) {
-            System.out.println("Boardsize changed");
+            //System.out.println("Boardsize changed");
         } else {
-            System.out.println("Illegal boardsize");
-        }
+           // System.out.println("Illegal boardsize");
+    }
     }
 
     public void clearBoard() {

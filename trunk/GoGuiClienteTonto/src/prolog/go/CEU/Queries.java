@@ -28,7 +28,7 @@ public class Queries {
     }
 
     public boolean addPiece(String color, int rank, char file) {
-        String t = "placeStone(0," + color + "," + rank + "," + file + ")";
+        String t = "placeStoneWithoutMove(0," + color + "," + rank + "," + file + ")";
         Query q = new Query(t);
         if (q.hasSolution()) {
             return true;
@@ -38,7 +38,7 @@ public class Queries {
     }
 
     public boolean addPiece(Move m) {
-        String t = "placeStone(0," + m.getColor() + "," + m.getRank() + "," + m.getFile() + ")";
+        String t = "placeStoneWithoutMove(0," + m.getColor() + "," + m.getRank() + "," + m.getFile() + ")";
         Query q = new Query(t);
         if (q.hasSolution()) {
             return true;

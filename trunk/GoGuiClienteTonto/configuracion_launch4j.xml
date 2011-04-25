@@ -1,0 +1,22 @@
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>C:\Documents and Settings\USUARIO\Mis documentos\NetBeansProjects\IAC Go Game\GoGuiClienteTonto\dist\GoGuiClienteTonto.jar</jar>
+  <outfile>C:\Documents and Settings\USUARIO\Mis documentos\NetBeansProjects\IAC Go Game\GoGuiClienteTonto\dist\GoGuiCliente.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <customProcName>false</customProcName>
+  <stayAlive>false</stayAlive>
+  <manifest></manifest>
+  <icon></icon>
+  <jre>
+    <path></path>
+    <minVersion>1.2.2</minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+  </jre>
+</launch4jConfig>

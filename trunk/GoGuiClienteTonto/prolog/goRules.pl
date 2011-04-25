@@ -173,6 +173,24 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 % L is the letter representing the File (a-t)
 placeStone(P,Color,I,L) :- isFile(J,L),placeStone(P,Color,I,J),!.
 
+
+% Game actions
+placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
+	                   hasNumberMoves(P,Color,X),
+			   N is X+1,
+			   retractall(hasNumberMoves(P,Color,X)),
+			   assert(hasNumberMoves(P,Color,N)),
+			   hasColor(Stone,Color),
+			   hasNumber(Stone,N),
+			   assert(isInSquare(P,Stone,I,J)),
+			   checkCaptured(P,Stone),
+			   retractall(hasPlayerWithTheMove(P,Color)),
+			   isOppositeColor(Color,OtherColor),
+			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
+% L is the letter representing the File (a-t)
+placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,I,J),!.
+
+
 % Checks if the stone has captured any stones around it
 checkCaptured(P,Stone) :- isAdyacentOpposite(P,Stone,Stone2),
 	                  listSurrounded(P,Stone2,L),
