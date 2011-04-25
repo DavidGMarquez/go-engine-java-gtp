@@ -1,31 +1,24 @@
 :-consult('goRules.pl').
-:- assert(initialConfiguration(0)).
-:- assert(isInSquare(0, white(1), 2, 5)).
-% :- assert(isInSquare(0, white(2), 1, 4)).
-:- assert(isInSquare(0, white(3), 1, 6)).
-:- assert(isInSquare(0, white(4), 1, 7)).
-:- assert(isInSquare(0, white(5), 1, 8)).
-:- assert(isInSquare(0, white(6), 5, 6)).
-% :- assert(isInSquare(0, white(7), 4, 8)).
-:- assert(isInSquare(0, white(8), 5, 7)).
-:- assert(isInSquare(0, white(9), 4, 4)).
-:- assert(isInSquare(0, white(10), 3, 6)).
-:- assert(isInSquare(0, white(11), 3, 7)).
-:- assert(isInSquare(0, white(12), 3, 5)).
-:- assert(isInSquare(0, white(13), 5, 5)).
-:- assert(isInSquare(0, white(14), 9, 9)).
-:- assert(isInSquare(0, white(15), 8, 8)).
-:- assert(isInSquare(0, white(16), 8, 9)).
-:- assert(isInSquare(0, white(17), 9, 8)).
+:- assert(initialConfiguration(3)).
 
-:- assert(isInSquare(0, black(1), 1, 5)).
-:- assert(isInSquare(0, black(2), 4,6)).
-:- assert(isInSquare(0, black(3), 4,7)).
-:- assert(isInSquare(0, black(4), 4,5)).
+:- assert(isInSquare(0, white(1), 1, 1)).
+:- assert(isInSquare(0, white(2), 1, 2)).
+:- assert(isInSquare(0, white(3), 1, 3)).
+:- assert(isInSquare(0, white(4), 1, 4)).
+:- assert(isInSquare(0, white(5), 2, 1)).
+:- assert(isInSquare(0, white(6), 2, 3)).
+:- assert(isInSquare(0, white(7), 2, 4)).
+:- assert(isInSquare(0, white(8), 3, 1)).
+:- assert(isInSquare(0, white(9), 3, 2)).
+:- assert(isInSquare(0, white(10), 3, 3)).
+:- assert(isInSquare(0, white(11), 3, 4)).
+:- assert(isInSquare(0, white(12), 4, 1)).
+:- assert(isInSquare(0, white(13), 4, 2)).
+:- assert(isInSquare(0, white(14), 4, 3)).
 
 :- assert(hasPlayerWithTheMove(0,black)).
-:- assert(hasNumberMoves(0,black,6)).
-:- assert(hasNumberMoves(0,white,17)).
+:- assert(hasNumberMoves(0,black,0)).
+:- assert(hasNumberMoves(0,white,14)).
 :- assert(hasNumberOfCapturedStones(0,white,0)).
 :- assert(hasNumberOfCapturedStones(0,black,0)).
 
