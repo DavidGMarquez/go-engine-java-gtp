@@ -26,9 +26,9 @@ public class TraductorGTPProlog {
         q1.close();
         queries.newGame();
         if (queries.boardsize(defaultSize)) {
-            //System.out.println("Boardsize changed");
+            System.out.println("Boardsize changed");
         } else {
-            // System.out.println("Illegal boardsize");
+            System.out.println("Illegal boardsize");
         }
     }
 
@@ -47,15 +47,14 @@ public class TraductorGTPProlog {
             move = queries.genMove("black");
         } else {
             if (goColor.equals(GoColor.WHITE)) {
-                move = queries.genMove("white");                
+                move = queries.genMove("white");
             }
         }
         if (move != null) {
             queries.addPiece(move);
             return moveToGoPoint(move);
 
-        }
-        else{
+        } else {
             return null;
         }
     }
@@ -74,13 +73,19 @@ public class TraductorGTPProlog {
 
     public Move createMove(GoPoint point, GoColor gocolor) {
         Move m = new Move();
-        m.setRank(point.getX() + 1);
-        m.setFile(point.getY() + 1);
+        if (point == null) {
+            m.setRank(0);
+            m.setFile(0);
+        } else {
+            m.setRank(point.getY() + 1);
+            m.setFile(point.getX() + 1);
+        }
         if (gocolor.equals(GoColor.BLACK)) {
             m.setColor("black");
         } else {
             m.setColor("white");
         }
+
         return m;
     }
 
@@ -89,7 +94,7 @@ public class TraductorGTPProlog {
         if (m.isPass()) {
             return null;
         } else {
-            return GoPoint.get(m.getRank() - 1, m.getFile() - 1);
+            return GoPoint.get(m.getFile() - 1, m.getRank() - 1);
         }
     }
 }
