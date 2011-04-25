@@ -164,7 +164,7 @@ allSurrounded(P,[Stone|L]) :- isSurrounded(P,Stone),allSurrounded(P,L).
 
 listLiberties(P,[Stone|L],Lin,Lout) :- listAdyacentEmpty(P,Stone,Le),
 	                               addPairs(Le,Lin,LoutA),
-				        listLiberties(P,L,LoutA,Lout),!.
+				       listLiberties(P,L,LoutA,Lout),!.
 
  
 listLiberties(_P,_,Lin,Lin).
@@ -180,11 +180,14 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   hasColor(Stone,Color),
 			   hasNumber(Stone,N),
 			   assert(isInSquare(P,Stone,I,J)),
+			   checkIfCapture(P,Stone,L),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
-			   retractall(hasPlayerWithTheMove(P,Color)),
+			   checkOwnCapture(P,Stone),
+			   removeStones(P,L),
+  			   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
 			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
 
@@ -201,10 +204,13 @@ placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   hasColor(Stone,Color),
 			   hasNumber(Stone,N),
 			   assert(isInSquare(P,Stone,I,J)),
+			   checkIfCapture(P,Stone,L),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
 			   checkCaptured(P,Stone),
+			   checkOwnCapture(P,Stone),
+			   removeStones(P,L),
 			   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
 			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
@@ -216,14 +222,27 @@ placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,
 checkCaptured(P,Stone) :- isAdyacentOpposite(P,Stone,Stone2),
 	                  listSurrounded(P,Stone2,L),
 			  removeStones(P,L).
+
 % Returns true so as to not interrupt the stone placing process
 checkCaptured(_,_).
 
+% Returns in L a list of stones that should get captured
+% Does NOT capture said stones
+checkIfCapture(P,Stone,L) :- listSurrounded(P,Stone,L).
+checkIfCapture(_,_,[]).
+
+% Removes captured stones that have the same color as Stone
+checkOwnCapture(P,Stone) :- listSurrounded(P,Stone,L),
+			    removeStones(P,L).
+checkOwnCapture(_,_).
+
+% Removes a list of stones, adding the points to the opposite color
 removeStones(_,[]).
 removeStones(Position,[Stone|List]) :- retractall(isInSquare(Position,Stone,_,_)),
 				       addPoints(Position,Stone),
 				       removeStones(Position,List).
 
+% Adds points for each stone captured
 addPoints(Position,Stone) :- hasColor(Stone,Color),
 	hasNumberOfCapturedStones(Position,Color2,X),
 	isOppositeColor(Color,Color2),
@@ -231,7 +250,7 @@ addPoints(Position,Stone) :- hasColor(Stone,Color),
 	retractall(hasNumberOfCapturedStones(Position,Color2,X)),
 	assert(hasNumberOfCapturedStones(Position,Color2,N)).
 	
-% Evaluates a possible move in board 0
+% Evaluates a possible move in board P
 evaluateVirtualTablet(P,PV,Color,I,J,Points):-
 	copyBoard(P,PV),
 	assert(hasPlayerWithTheMove(PV,Color)),
