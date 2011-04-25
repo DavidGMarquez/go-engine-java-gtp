@@ -48,7 +48,7 @@ public class Queries {
     }
 
     public Move genMove(String color) {
-        String t = "chooseMoves(0," + color + ",L)";
+        String t = "chooseMoves(0,leveltwo," + color + ",L)";
         Query q = new Query(t);
         if (q.hasSolution()) {
             Hashtable h = q.oneSolution();
