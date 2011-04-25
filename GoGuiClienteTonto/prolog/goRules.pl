@@ -137,7 +137,8 @@ legalMove(_,_,0,0).
 legalMove(Position, _Color, I, J) :- lineInGrid(I), lineInGrid(J),
 	                            not(isInSquare(Position,_S,I,J)).
 
-legalMoves(Position,Color,L) :- findall((I,J),legalMove(Position,Color,I,J),L).
+% Returns a list of legal moves, checking for Ko situation
+legalMoves(Position,Color,L) :- findall((I,J),(legalMove(Position,Color,I,J),not(isKo(Position,ko,Color,I,J))),L).
 						
 
 % Checks whether there is a chain of connected stones
@@ -174,6 +175,7 @@ listLiberties(_P,_,Lin,Lin).
 
 % Places a stone on (I,J), checking whether it is Color's turn
 placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
+	                   not(isKo(P,ko,Color,I,J)),
 	                   hasNumberMoves(P,Color,X),
 			   N is X+1,
 			   retractall(hasNumberMoves(P,Color,X)),
@@ -189,13 +191,43 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   checkOwnCapture(P,Stone),
   			   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
-			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
+			   assert(hasPlayerWithTheMove(P,OtherColor)),
+			   copyBoard(anterior,ko),
+			   copyBoard(P,anterior),!.
 
 % L is the letter representing the File (a-t)
 placeStone(P,Color,I,L) :- isFile(J,L),placeStone(P,Color,I,J),!.
 
 % Places a stone on (I,J) regardless of whether it's Color's turn or not
-placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
+placeStoneWithoutMove(P,Color,I,J) :-
+	                   legalMove(P,Color,I,J),
+			   not(isKo(P,ko,Color,I,J)),
+	                   hasNumberMoves(P,Color,X),
+			   N is X+1,
+			   retractall(hasNumberMoves(P,Color,X)),
+			   assert(hasNumberMoves(P,Color,N)),
+			   hasColor(Stone,Color),
+			   hasNumber(Stone,N),
+			   assert(isInSquare(P,Stone,I,J)),
+			   checkCaptured(P,Stone),
+			   checkCaptured(P,Stone),
+			   checkCaptured(P,Stone),
+			   checkCaptured(P,Stone),
+			   checkOwnCapture(P,Stone),
+			   retractall(hasPlayerWithTheMove(P,Color)),
+			   isOppositeColor(Color,OtherColor),
+			   assert(hasPlayerWithTheMove(P,OtherColor)),
+			   copyBoard(anterior,ko),
+			   copyBoard(P,anterior),!.
+
+% L is the letter representing the File (a-t)
+placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,I,J),!.
+
+
+% Places a stone on (I,J) without checking for ko
+% Is used in virtual boards, levelone, leveltwo and koeval
+placeStoneWithoutCopy(P,Color,I,J) :-
+	                   legalMove(P,Color,I,J),
 	                   hasNumberMoves(P,Color,X),
 			   N is X+1,
 			   retractall(hasNumberMoves(P,Color,X)),
@@ -213,7 +245,7 @@ placeStoneWithoutMove(P,Color,I,J) :- legalMove(P,Color,I,J),
 			   assert(hasPlayerWithTheMove(P,OtherColor)),!.
 
 % L is the letter representing the File (a-t)
-placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,I,J),!.
+placeStoneWithoutCopy(P,Color,I,L) :- isFile(J,L),placeStoneWithoutCopy(P,Color,I,J),!.
 
 
 % Checks if the stone has captured any stones around it
@@ -249,6 +281,12 @@ addPoints(Position,Stone) :- hasColor(Stone,Color),
 	N is X+1,
 	retractall(hasNumberOfCapturedStones(Position,Color2,X)),
 	assert(hasNumberOfCapturedStones(Position,Color2,N)).
+
+isKo(P,Ko,Color,I,J) :-
+	copyBoard(P,koeval),
+	placeStoneWithoutCopy(koeval,Color,I,J),
+	areEqualBoards(koeval,Ko),
+	cleanBoard(koeval),!.
 	
 
 % Evaluates a possible move in board P
@@ -257,9 +295,9 @@ addPoints(Position,Stone) :- hasColor(Stone,Color),
 evaluateVirtualTablet(P,PV,leveltwo,Color,I,J,Points,OPoints) :-
 	isOppositeColor(Color,OtherColor),
 	copyBoard(P,PV),
-	placeStoneWithoutMove(PV,Color,I,J),
+	placeStoneWithoutCopy(PV,Color,I,J),
 	chooseMove(PV,levelone,OtherColor,X,Y),
-	placeStoneWithoutMove(PV,OtherColor,X,Y),
+	placeStoneWithoutCopy(PV,OtherColor,X,Y),
 	hasNumberOfCapturedStones(PV,Color,Points),
 	hasNumberOfCapturedStones(PV,OtherColor,OPoints),
 	cleanBoard(PV),!.
@@ -267,7 +305,7 @@ evaluateVirtualTablet(P,PV,leveltwo,Color,I,J,Points,OPoints) :-
 % Evaluates a possible move in board P
 evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints):-
 	copyBoard(P,PV),
-	placeStoneWithoutMove(PV,Color,I,J),
+	placeStoneWithoutCopy(PV,Color,I,J),
 	hasNumberOfCapturedStones(PV,Color,Points),
 	isOppositeColor(Color,OtherColor),
 	hasNumberOfCapturedStones(PV,OtherColor,OPoints),
@@ -351,24 +389,40 @@ cleanBoard(C) :- retractall(isInSquare(C,_,_,_)),
 		 assert(hasNumberMoves(C,black,0)),
 		 assert(hasNumberMoves(C,white,0)),
 		 assert(hasNumberOfCapturedStones(C,black,0)),
-		 assert(hasNumberOfCapturedStones(C,white,0)).
+		 assert(hasNumberOfCapturedStones(C,white,0)),
+		 assert(hasPlayerWithTheMove(C,black)).
 
 allStones(Position,L) :- findall(Stone,isInSquare(Position,Stone,_,_),L).
+allStonesSquare(Position,Color,L) :- findall((I,J),(isInSquare(Position,Stone,I,J),hasColor(Stone,Color)),L).
 
 copyStones(_P1,_P2,[]).
 copyStones(P1,P2,[Stone|L]) :- isInSquare(P1,Stone,I,J),
 			     assert(isInSquare(P2,Stone,I,J)),
 			     copyStones(P1,P2,L).
 
+checkInit(P) :- hasNumberMoves(P,_,_),
+	        hasPlayerWithTheMove(P,_),
+		hasNumberOfCapturedStones(P,_,_),!.
+
+checkInit(P) :- cleanBoard(P),!.
+
 % copies an entire board
 copyBoard(Pin,Pout) :- cleanBoard(Pout),
+	               checkInit(Pin),
 	               allStones(Pin,L),copyStones(Pin,Pout,L),
 		       retractall(hasNumberMoves(Pout,_,_)),
 	               hasNumberMoves(Pin,black,B),assert(hasNumberMoves(Pout,black,B)),
 		       hasNumberMoves(Pin,white,W),assert(hasNumberMoves(Pout,white,W)),
-		       hasPlayerWithTheMove(Pin,C),assert(hasPlayerWithTheMove(Pout,C)),
+		       retractall(hasPlayerWithTheMove(Pout,_)),
+		       hasPlayerWithTheMove(Pin,C),
+		       assert(hasPlayerWithTheMove(Pout,C)),
 		       hasNumberOfCapturedStones(Pin,black,CB),
 		       retractall(hasNumberOfCapturedStones(Pout,_,_)),
 		       assert(hasNumberOfCapturedStones(Pout,black,CB)),
 		       hasNumberOfCapturedStones(Pin,white,CW),
 		       assert(hasNumberOfCapturedStones(Pout,white,CW)).
+
+areEqualBoards(P1,P2) :- allStonesSquare(P1,white,L1W),allStonesSquare(P2,white,L2W),
+	                 allStonesSquare(P1,black,L1B),allStonesSquare(P2,black,L2B),
+			 equal(L1W,L2W),equal(L1B,L2B),!.
+		       
