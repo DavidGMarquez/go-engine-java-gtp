@@ -34,3 +34,14 @@ En el tablero hay tres posiciones en las que se pueden colocar las blancas que h
 1,3  (1,c)
 Además está la jugada suicida, 1,1 (1,a), que se evitaría también con el nivel uno de evaluación.
 Comprobar que chooseMoves(0,levelone,white,L) devuelve todos los movimientos (excepto el suicidio) mientras que el nivel 2, chooseMoves(0,leveltwo,white,L), no devuelve las jugadas potencialmente peligrosas.
+
+goGame_ko.pl
+------------
+En el tablero está la clásica posición de Ko. Introducir:
+placeStoneWithoutMove(0,white,3,b).
+placeStoneWithoutMove(0,black,3,c).
+Ya no se puede colocar una pieza blanca en (3,b), al menos de que se ponga antes una pieza en otro sitio.
+Comprobar con chooseMoves que la posición de Ko no está incluida, y por lo tanto no podrá ser generada:
+chooseMoves(0,leveltwo,white,L).
+Comprobar que la mejor opción para el color negro es colocar una pieza en el lugar (3,c), ya que si la colocan en cualquier otro sitio, las blancas ya son libres de volver a colocar su pieza ahí para capturar la negra:
+chooseMoves(0,leveltwo,black,L).

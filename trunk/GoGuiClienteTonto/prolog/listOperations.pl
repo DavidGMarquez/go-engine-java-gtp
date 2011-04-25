@@ -1,6 +1,15 @@
 notMember(_X,[]).
 notMember(X,[Y|Ys]):- X\=Y,notMember(X,Ys).
 
+isSubset([],_).
+isSubset([H|T],Y):-
+    member(H,Y),
+    select(H,Y,Z),
+    isSubset(T,Z).
+equal(X,Y):-
+    isSubset(X,Y),
+    isSubset(Y,X).
+
 eliminate(X,[X|Xs],Xs).
 eliminate(X,[Y|Ys],[Y|Zs]):- eliminate(X,Ys,Zs).
 
