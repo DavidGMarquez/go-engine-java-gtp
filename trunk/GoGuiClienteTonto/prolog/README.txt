@@ -9,10 +9,6 @@ placeStone(0,black,1,a).
 Si se usa play, observar que white ha capturado el bloque más grande de piezas negras.
 Si no, usar chooseMove(0,levelone,white,X,Y) para ver que la jugada generada siempre será la que más piezas negras captura.
 
-goGame_blackpass.pl
--------------------
-Partida con un tablero casi lleno de piezas blancas, excepto dos huecos. Observar con chooseMove(0,levelone,black,X,Y) que la única opción que tiene es pasar (0,0), ya que cualquier otra opción sería suicidio.
-
 goGame_capture.pl
 -----------------
 Distintas formas de suicidio.
@@ -45,3 +41,10 @@ Comprobar con chooseMoves que la posición de Ko no está incluida, y por lo tanto
 chooseMoves(0,leveltwo,white,L).
 Comprobar que la mejor opción para el color negro es colocar una pieza en el lugar (3,c), ya que si la colocan en cualquier otro sitio, las blancas ya son libres de volver a colocar su pieza ahí para capturar la negra:
 chooseMoves(0,leveltwo,black,L).
+
+goGame_badmove.pl
+-----------------
+Las únicas opciones que tienen las fichas blancas harán que las negras las capturen. La decisión que tome depende del nivel de evaluación.
+Si utiliza un nivel uno, lo pondrá en cualquier espacio vacío:
+chooseMoves(0,levelone,white,L).
+Si utiliza el nivel 2, no tomará la opción de colocarla en (5,2), ya que haría que las negras le capturaran 5 piezas en vez de tres. También contempla la opción de pasar, que hará que pierda 3 piezas igualmente.
