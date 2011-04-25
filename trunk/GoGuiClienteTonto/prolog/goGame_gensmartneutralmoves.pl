@@ -1,26 +1,17 @@
 :-consult('goRules.pl').
-:- assert(initialConfiguration(6)).
+:- assert(initialConfiguration(3)).
 
-:- assert(isInSquare(0, white(1), 4, 5)).
-:- assert(isInSquare(0, white(2), 4, 6)).
-:- assert(isInSquare(0, white(3), 4, 3)).
-:- assert(isInSquare(0, white(4), 4, 2)).
-
-:- assert(isInSquare(0, black(1), 4, 1)).
-:- assert(isInSquare(0, black(2), 4, 7)).
-:- assert(isInSquare(0, black(3), 5, 5)).
-:- assert(isInSquare(0, black(4), 5, 6)).
-:- assert(isInSquare(0, black(5), 5, 3)).
-:- assert(isInSquare(0, black(6), 5, 2)).
-:- assert(isInSquare(0, black(7), 3, 5)).
-:- assert(isInSquare(0, black(8), 3, 6)).
-:- assert(isInSquare(0, black(9), 3, 3)).
-:- assert(isInSquare(0, black(10), 3, 2)).
+:- assert(isInSquare(0, black(1), 1, 2)).
+:- assert(isInSquare(0, black(2), 2, 1)).
+:- assert(isInSquare(0, black(3), 2, 3)).
+:- assert(isInSquare(0, black(4), 4, 1)).
+:- assert(isInSquare(0, black(5), 2, 2)).
+:- assert(isInSquare(0, black(6), 4, 4)).
 
 
-:- assert(hasPlayerWithTheMove(0,black)).
-:- assert(hasNumberMoves(0,black,10)).
-:- assert(hasNumberMoves(0,white,4)).
+:- assert(hasPlayerWithTheMove(0,white)).
+:- assert(hasNumberMoves(0,black,6)).
+:- assert(hasNumberMoves(0,white,0)).
 :- assert(hasNumberOfCapturedStones(0,white,0)).
 :- assert(hasNumberOfCapturedStones(0,black,0)).
 
