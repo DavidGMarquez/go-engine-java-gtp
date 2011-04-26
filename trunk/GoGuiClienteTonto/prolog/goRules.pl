@@ -1,26 +1,36 @@
 :- consult('listOperations.pl').
 
-% Controla el turno
-:- dynamic hasPlayerWithTheMove/3.
-% Controla el n�mero de movimientos que hay.
+% Checks the turn on a board for a color
+% (Board, Color)
+:- dynamic hasPlayerWithTheMove/2.
+
+% Checks the number of moves on a board for a color
+% (Board,Color,NumberOfMoves)
 :- dynamic hasNumberMoves/3.
-% Comprueba si esta en el tablero y en que posicion.
+
+% Checks whether a stone is placed on the board on a rank and file
+% (Board, Stone, Rank, File)
 :- dynamic isInSquare/4.
 
+% Checks the number of stones a player has captured
+% (Board, Color, NumberofCapturedStones)
 :- dynamic hasNumberOfCapturedStones/3.
 
+% Checks how many consecutive passes there have been
+% (Board, Passes)
 :- dynamic passes/2.
-
-position(0).
 
 % Establece la configuracion por defecto del tablero 
 :- dynamic initialConfiguration/1.
 
+% Defines a stone as a color with an associated number
+% based on order of placement on the board
 stone(white(X)) :- integer(X), X>=0.
 stone(black(X)) :- integer(X), X>=0.
 
-% Definimos las distintas lineas que puede tener el tablero esto es para dimensionar todo el tablero
-% Las casillas se cuentan de izquierda a derecha y de abajo arriba
+% Definitions of all the board lines, horizontal and vertical
+% Horizontal ranks are numbered from top to botton
+% Vertical files are numbered from left to right
 line(1).
 line(2).
 line(3).
@@ -41,6 +51,7 @@ line(17).
 line(18).
 line(19).
 
+% Number/letter conversion, for files
 isFile(1,a).
 isFile(2,b).
 isFile(3,c).
@@ -136,12 +147,12 @@ isSurrounded(Position,Stone) :- isInSquare(Position,Stone,I,J),
                                 ((JL is J-1,isInSquare(Position,_Stone3,I,JL));isLEdge(J)),
 				((JR is J+1,isInSquare(Position,_Stone4,I,JR));isUEdge(J)).
 
+% Checks if a stone or coordinates have NO adyacent stones
 isFree(Position,Stone) :- not(isAdyacent(Position,Stone,_)).
 isFree(Position,I,J) :- not(isAdyacent(Position,I,J,_)).
 
 % Legal moves.
 % 0,0 is equivalent to passing
-% TODO: suicide, ko
 passingMove((0,0)).
 legalMove(_,_,0,0).
 legalMove(Position, _Color, I, J) :- lineInGrid(I), lineInGrid(J),
@@ -178,15 +189,16 @@ listSurrounded(P,Stone,L) :- connectedToStone(P,Stone,L),
 allSurrounded(P,[Stone|[]]) :- isSurrounded(P,Stone).
 allSurrounded(P,[Stone|L]) :- isSurrounded(P,Stone),allSurrounded(P,L).
 
+% Lists the liberties of stones in L on Lout, without copies
 listLiberties(P,[Stone|L],Lin,Lout) :- listAdyacentEmpty(P,Stone,Le),
 	                               addPairs(Le,Lin,LoutA),
 				       listLiberties(P,L,LoutA,Lout),!.
-
- 
 listLiberties(_P,_,Lin,Lin).
 
 
-% Game actions
+% ACTIONS
+
+% Passing stone
 placeStone(P,Color,0,0) :- hasPlayerWithTheMove(P,Color),
 	                   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
@@ -224,7 +236,7 @@ placeStone(P,Color,I,J) :- legalMove(P,Color,I,J),
 % L is the letter representing the File (a-t)
 placeStone(P,Color,I,L) :- isFile(J,L),placeStone(P,Color,I,J),!.
 
-
+% Passing stone
 placeStoneWithoutMove(P,Color,0,0) :-
 	                   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
@@ -263,7 +275,7 @@ placeStoneWithoutMove(P,Color,I,J) :-
 % L is the letter representing the File (a-t)
 placeStoneWithoutMove(P,Color,I,L) :- isFile(J,L),placeStoneWithoutMove(P,Color,I,J),!.
 
-
+% Passing stone
 placeStoneWithoutCopy(P,Color,0,0) :-
 	                   retractall(hasPlayerWithTheMove(P,Color)),
 			   isOppositeColor(Color,OtherColor),
@@ -334,12 +346,77 @@ addPoints(Position,Stone) :- hasColor(Stone,Color),
 	retractall(hasNumberOfCapturedStones(Position,Color2,X)),
 	assert(hasNumberOfCapturedStones(Position,Color2,N)).
 
+% Checks whether the boards P and Ko have same colored stones
+% in the same position
 isKo(P,Ko,Color,I,J) :-
 	copyBoard(P,koeval),
 	placeStoneWithoutCopy(koeval,Color,I,J),
 	areEqualBoards(koeval,Ko),
 	cleanBoard(koeval),!.
-	
+
+% Resets the game
+cleanBoard(C) :- retractall(isInSquare(C,_,_,_)),
+	         retractall(hasNumberMoves(C,_,_)),
+		 retractall(hasNumberOfCapturedStones(C,_,_)),
+		 retractall(passes(C,_)),
+		 assert(passes(C,0)),
+		 assert(hasNumberMoves(C,black,0)),
+		 assert(hasNumberMoves(C,white,0)),
+		 assert(hasNumberOfCapturedStones(C,black,0)),
+		 assert(hasNumberOfCapturedStones(C,white,0)),
+		 assert(hasPlayerWithTheMove(C,black)).
+
+% Changes the size of the board
+changeSize(Size) :- retractall(initialConfiguration(_)),assert(initialConfiguration(Size)).
+
+% Returns all of the stones present in Position, in list L
+allStones(Position,L) :- findall(Stone,isInSquare(Position,Stone,_,_),L).
+
+% Returns all of the stones present in Position with color Color
+allStonesSquare(Position,Color,L) :- findall((I,J),(isInSquare(Position,Stone,I,J),hasColor(Stone,Color)),L).
+
+% Copies the stones from a list into P2, provided they exist in P1
+copyStones(_P1,_P2,[]).
+copyStones(P1,P2,[Stone|L]) :- isInSquare(P1,Stone,I,J),
+			     assert(isInSquare(P2,Stone,I,J)),
+			     copyStones(P1,P2,L).
+
+% Checks whether a board has been initialized
+checkInit(P) :- hasNumberMoves(P,_,_),
+	        hasPlayerWithTheMove(P,_),
+		hasNumberOfCapturedStones(P,_,_),!.
+checkInit(P) :- cleanBoard(P),!.
+
+% copies an entire board
+copyBoard(Pin,Pout) :- cleanBoard(Pout),
+	               checkInit(Pin),
+	               allStones(Pin,L),copyStones(Pin,Pout,L),
+		       retractall(hasNumberMoves(Pout,_,_)),
+	               hasNumberMoves(Pin,black,B),assert(hasNumberMoves(Pout,black,B)),
+		       hasNumberMoves(Pin,white,W),assert(hasNumberMoves(Pout,white,W)),
+		       retractall(hasPlayerWithTheMove(Pout,_)),
+		       hasPlayerWithTheMove(Pin,C),
+		       assert(hasPlayerWithTheMove(Pout,C)),
+		       hasNumberOfCapturedStones(Pin,black,CB),
+		       retractall(hasNumberOfCapturedStones(Pout,_,_)),
+		       assert(hasNumberOfCapturedStones(Pout,black,CB)),
+		       hasNumberOfCapturedStones(Pin,white,CW),
+		       assert(hasNumberOfCapturedStones(Pout,white,CW)).
+
+% Checks whether two boards P1 and P2 have same colored stones
+% placed on the same positions
+areEqualBoards(P1,P2) :- allStonesSquare(P1,white,L1W),allStonesSquare(P2,white,L2W),
+	                 allStonesSquare(P1,black,L1B),allStonesSquare(P2,black,L2B),
+			 equal(L1W,L2W),equal(L1B,L2B),!.
+
+% Checks whether there have been at least two consecutive passes
+finishedGame(P) :- passes(P,N),N>1.
+
+
+
+
+
+% INTELLIGENCE
 
 % Evaluates a possible move in board P
 % Generates the best possible move for the opponent
@@ -382,10 +459,18 @@ evaluateMove(P,Level,Color,(I,J),N,Neutral) :- hasNumberOfCapturedStones(P,Color
 				 OtherGain is C2Other-C1Other,
 			         N is OwnGain-OtherGain.
 
+% Evaluates a move, deciding if it's positive, neutral or negative
+
+% positive move: has positive capture score 
 positiveMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N,_),N>0.
+
+% neutral move: place a stone with 4 liberties, affecting no other stone
 neutralMove(P,levelone,_Color,(I,J),0) :- isFree(P,I,J),
 	                                  not(passingMove((I,J))),!.
+% Neutral move: no stones are captured
 neutralMove(P,Level,Color,(I,J),N) :- evaluateMove(P,Level,Color,(I,J),0,N),not(passingMove((I,J))).
+
+% Negative move: the player loses stones
 negativeMove(P,Level,Color,(I,J),N):- evaluateMove(P,Level,Color,(I,J),N,_),N<0.
 		
 
@@ -396,6 +481,7 @@ positiveMoves(P,Level,Color,[Move|Allmoves],PositiveMoves,PositiveMovesOut,Point
 	(not(positiveMove(P,Level,Color,Move,_)),append(PositiveMoves,[],PositiveMovesO),append(PointsIn,[],PO))),
 	positiveMoves(P,Level,Color,Allmoves,PositiveMovesO,PositiveMovesOut,PO,PointsOut),!.
 
+% Returns in a list all of the moves that will capture own stones
 negativeMoves(_,_,_,[],L,L,P,P).
 negativeMoves(P,Level,Color,[Move|Allmoves],NegativeMoves,NegativeMovesOut,PointsIn,PointsOut) :-
 	((negativeMove(P,Level,Color,Move,N),append(NegativeMoves,[Move],NegativeMovesO),append(PointsIn,[N],PO));
@@ -403,7 +489,7 @@ negativeMoves(P,Level,Color,[Move|Allmoves],NegativeMoves,NegativeMovesOut,Point
 	negativeMoves(P,Level,Color,Allmoves,NegativeMovesO,NegativeMovesOut,PO,PointsOut),!.
 
 
-
+% Returns in a list all of the moves that will capture no stones
 neutralMoves(_,_,_,[],L,L,P,P).
 neutralMoves(P,Level,Color,[Move|Allmoves],NeutralMoves,NeutralMovesOut, PointsIn,PointsOut) :-
 	((neutralMove(P,Level,Color,Move,N),append(NeutralMoves,[Move],NeutralMovesO),append(PointsIn,[N],PO));
@@ -416,12 +502,17 @@ anyMove(P,Level,Color,Move) :-
 	legalMoves(P,Color,L),
 	neutralMoves(P,Level,Color,L,[],NM,[],_),
 	randomElement(NM,Move).
+
+% Returns a list of all neutral moves
 anyMoves(P,Level,Color,Moves) :-
         legalMoves(P,Color,L),
 	neutralMoves(P,Level,Color,L,[],Moves,[],_),
 	numberOfElements(Moves,N),N>0.
 
+% Picks any neutral move from the list of legal moves
 bestNeutralMove(P,levelone,Color,Move) :- anyMove(P,levelone,Color,Move).
+
+% Returns the neutral move with the highest neutral score
 bestNeutralMove(P,leveltwo,Color,Move) :-
 	legalMoves(P,Color,L),
 	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
@@ -430,7 +521,10 @@ bestNeutralMove(P,leveltwo,Color,Move) :-
 	getElementAt(In,NM,Moves),
 	randomElement(Moves,Move).
 
+% Returns a list of all neutral moves
 bestNeutralMoves(P,levelone,Color,Moves) :- anyMoves(P,levelone,Color,Moves).
+
+% Returns a list of the neutral moves with the highest score
 bestNeutralMoves(P,leveltwo,Color,Moves):-
 	legalMoves(P,Color,L),
 	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
@@ -444,7 +538,7 @@ anyPositiveMove(P,Level,Color,Move) :-
 	positiveMoves(P,Level,Color,L,[],PM,[],_),
 	randomElement(PM,Move).
 
-% TO-DO best positive move
+% Best positive move
 bestMove(P,Level,Color,Move) :-
 	legalMoves(P,Color,L),
 	positiveMoves(P,Level,Color,L,[],PM,[],Points),
@@ -453,6 +547,7 @@ bestMove(P,Level,Color,Move) :-
 	getElementAt(In,PM,Moves),
 	randomElement(Moves,Move).
 
+% Best positive moves
 bestMoves(P,Level,Color,Moves):-
 	legalMoves(P,Color,L),
 	positiveMoves(P,Level,Color,L,[],PM,[],Points),
@@ -466,7 +561,7 @@ anyNegativeMove(P,Level,Color,Move) :-
 	negativeMoves(P,Level,Color,L,[],PM,[],_),
 	randomElement(PM,Move).
 
-% TO-DO best positive move
+% Best negative move
 bestBadMove(P,Level,Color,Move) :-
 	legalMoves(P,Color,L),
 	negativeMoves(P,Level,Color,L,[],NM,[],Points),
@@ -475,6 +570,7 @@ bestBadMove(P,Level,Color,Move) :-
 	getElementAt(In,NM,Moves),
 	randomElement(Moves,Move).
 
+% Best negative moves
 bestBadMoves(P,Level,Color,Moves):-
 	legalMoves(P,Color,L),
 	negativeMoves(P,Level,Color,L,[],NM,[],Points),
@@ -482,7 +578,7 @@ bestBadMoves(P,Level,Color,Moves):-
 	find_indexes(Points,Max,In),
 	getElementAt(In,NM,Moves).
 
-
+% Chooses a random move, based on score
 chooseMove(P,Level,Color,X,Y) :- bestMove(P,Level,Color,(X,Y)),!.
 chooseMove(P,Level,Color,X,Y) :- bestNeutralMove(P,Level,Color,(X,Y)),!.
 chooseMove(P,Level,Color,X,Y) :- bestBadMove(P,Level,Color,(X,Y)),!.
@@ -494,56 +590,8 @@ chooseMoves(P,Level,Color,L):- bestNeutralMoves(P,Level,Color,L),!.
 chooseMoves(P,Level,Color,L):- bestBadMoves(P,Level,Color,L),!.
 chooseMoves(_,_,_,[(0,0)]).
 	   
+% Black plays on board 0
+% White chooses the best move possible and plays
 play(I,J) :- placeStone(0,black,I,J),
 	     chooseMove(0,levelone,white,X,Y),
-	     placeStone(0,white,X,Y).
-
-cleanBoard(C) :- retractall(isInSquare(C,_,_,_)),
-	         retractall(hasNumberMoves(C,_,_)),
-		 retractall(hasNumberOfCapturedStones(C,_,_)),
-		 retractall(passes(C,_)),
-		 assert(passes(C,0)),
-		 assert(hasNumberMoves(C,black,0)),
-		 assert(hasNumberMoves(C,white,0)),
-		 assert(hasNumberOfCapturedStones(C,black,0)),
-		 assert(hasNumberOfCapturedStones(C,white,0)),
-		 assert(hasPlayerWithTheMove(C,black)).
-
-changeSize(Size) :- retractall(initialConfiguration(_)),assert(initialConfiguration(Size)).
-
-allStones(Position,L) :- findall(Stone,isInSquare(Position,Stone,_,_),L).
-allStonesSquare(Position,Color,L) :- findall((I,J),(isInSquare(Position,Stone,I,J),hasColor(Stone,Color)),L).
-
-copyStones(_P1,_P2,[]).
-copyStones(P1,P2,[Stone|L]) :- isInSquare(P1,Stone,I,J),
-			     assert(isInSquare(P2,Stone,I,J)),
-			     copyStones(P1,P2,L).
-
-checkInit(P) :- hasNumberMoves(P,_,_),
-	        hasPlayerWithTheMove(P,_),
-		hasNumberOfCapturedStones(P,_,_),!.
-
-checkInit(P) :- cleanBoard(P),!.
-
-% copies an entire board
-copyBoard(Pin,Pout) :- cleanBoard(Pout),
-	               checkInit(Pin),
-	               allStones(Pin,L),copyStones(Pin,Pout,L),
-		       retractall(hasNumberMoves(Pout,_,_)),
-	               hasNumberMoves(Pin,black,B),assert(hasNumberMoves(Pout,black,B)),
-		       hasNumberMoves(Pin,white,W),assert(hasNumberMoves(Pout,white,W)),
-		       retractall(hasPlayerWithTheMove(Pout,_)),
-		       hasPlayerWithTheMove(Pin,C),
-		       assert(hasPlayerWithTheMove(Pout,C)),
-		       hasNumberOfCapturedStones(Pin,black,CB),
-		       retractall(hasNumberOfCapturedStones(Pout,_,_)),
-		       assert(hasNumberOfCapturedStones(Pout,black,CB)),
-		       hasNumberOfCapturedStones(Pin,white,CW),
-		       assert(hasNumberOfCapturedStones(Pout,white,CW)).
-
-areEqualBoards(P1,P2) :- allStonesSquare(P1,white,L1W),allStonesSquare(P2,white,L2W),
-	                 allStonesSquare(P1,black,L1B),allStonesSquare(P2,black,L2B),
-			 equal(L1W,L2W),equal(L1B,L2B),!.
-
-finishedGame(P) :- passes(P,N),N>1.
-		       
+	     placeStone(0,white,X,Y).		       
