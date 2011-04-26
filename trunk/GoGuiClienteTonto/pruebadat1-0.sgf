@@ -1,0 +1,16 @@
+(;FF[4]CA[UTF-8]AP[gogui-twogtp:1.3.0]SZ[5]
+KM[6.5]PB[gogui-dummy]PW[go-CEU]DT[2011-04-25]
+C[Black command: misc/gogui-dummy.exe
+White command: misc/GoGuiCliente.exe
+Black version: 1.3.0
+White version: 1.X
+Result[Black\]: ?
+Result[White\]: ?
+Host: EVA01
+Date: April 25, 2011 10:52:44 PM CEST]
+;B[de];W[bd];B[be];W[ad];B[bc];W[ae];B[ab];W[ce];B[cb];W[be]
+;B[db];W[cd];B[da];W[cc];B[ee];W[dd];B[ac];W[ed];B[ba];W[de]
+;B[ea];W[dc];B[eb];W[aa];B[bb];W[aa];B[ca];W[aa];B[ec];W[aa]
+;B[];W[ec];B[];W[ac];B[];W[ab];B[];W[bb];B[];W[bc]
+;B[];W[ba];B[];W[ca];B[];W[da];B[];W[db];B[];W[ea]
+;B[];W[cb];B[];W[])
