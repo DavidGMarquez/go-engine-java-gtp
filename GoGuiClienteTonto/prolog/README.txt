@@ -53,7 +53,5 @@ goGame_gensmartneutralmoves.pl
 ------------------------------
 Selección de movimientos neutros en función de cuántas piezas adyacentes propias u opuestas hay.
 Probar con:
-chooseMoves(0,leveltwo,white,L).
-y
-chooseMoves(0,leveltwo,black,L).
+chooseMoves(0,levelone,black,L).
 En algunas ocasiones se agrupará con las fichas opuestas, y en otras con las propias.
