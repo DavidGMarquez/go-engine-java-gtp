@@ -437,9 +437,14 @@ evaluateVirtualTablet(P,PV,leveltwo,Color,I,J,Points,OPoints,NPoints,NPoints2) :
 	cleanBoard(PV),!.
 
 % Evaluates a possible move in board P
-evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints,0,0):-
+evaluateVirtualTablet(P,PV,levelone,Color,I,J,Points,OPoints,NPoints,NPoints2):-
 	copyBoard(P,PV),
 	placeStoneWithoutCopy(PV,Color,I,J),
+	((isAdyacentOpposite(PV,Color,I,J,Stone),isInSquare(PV,Stone,X,Y),
+	listConnected(PV,OtherColor,X,Y,[],L),numberOfElements(L,NPoints2));
+	(NPoints2 is 0)),
+	listConnected(PV,Color,I,J,[],L),
+	numberOfElements(L,NPoints),
 	hasNumberOfCapturedStones(PV,Color,Points),
 	isOppositeColor(Color,OtherColor),
 	hasNumberOfCapturedStones(PV,OtherColor,OPoints),
@@ -509,25 +514,19 @@ anyMoves(P,Level,Color,Moves) :-
 	neutralMoves(P,Level,Color,L,[],Moves,[],_),
 	numberOfElements(Moves,N),N>0.
 
-% Picks any neutral move from the list of legal moves
-bestNeutralMove(P,levelone,Color,Move) :- anyMove(P,levelone,Color,Move).
-
 % Returns the neutral move with the highest neutral score
-bestNeutralMove(P,leveltwo,Color,Move) :-
+bestNeutralMove(P,Level,Color,Move) :-
 	legalMoves(P,Color,L),
-	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
+	neutralMoves(P,Level,Color,L,[],NM,[],Points),
 	maxList(Points,Max),
 	find_indexes(Points,Max,In),
 	getElementAt(In,NM,Moves),
 	randomElement(Moves,Move).
 
-% Returns a list of all neutral moves
-bestNeutralMoves(P,levelone,Color,Moves) :- anyMoves(P,levelone,Color,Moves).
-
 % Returns a list of the neutral moves with the highest score
-bestNeutralMoves(P,leveltwo,Color,Moves):-
+bestNeutralMoves(P,Level,Color,Moves):-
 	legalMoves(P,Color,L),
-	neutralMoves(P,leveltwo,Color,L,[],NM,[],Points),
+	neutralMoves(P,Level,Color,L,[],NM,[],Points),
 	maxList(Points,Max),
 	find_indexes(Points,Max,In),
 	getElementAt(In,NM,Moves).
