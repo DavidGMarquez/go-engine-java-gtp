@@ -69,7 +69,7 @@ public class Queries {
         Query q = new Query(t);
         if (q.hasSolution()) {
             Hashtable h = q.oneSolution();
-            String t2 = "retractall(initialConfiguration(X))";
+            String t2 = "retractall(initialConfiguration(_))";
             q = new Query(t2);
             q.hasSolution();
             q = new Query("assert(initialConfiguration(" + h.get("X") + "))");

@@ -509,6 +509,8 @@ cleanBoard(C) :- retractall(isInSquare(C,_,_,_)),
 		 assert(hasNumberOfCapturedStones(C,white,0)),
 		 assert(hasPlayerWithTheMove(C,black)).
 
+changeSize(Size) :- retractall(initialConfiguration(_)),assert(initialConfiguration(Size)).
+
 allStones(Position,L) :- findall(Stone,isInSquare(Position,Stone,_,_),L).
 allStonesSquare(Position,Color,L) :- findall((I,J),(isInSquare(Position,Stone,I,J),hasColor(Stone,Color)),L).
 
